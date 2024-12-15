@@ -1,1 +1,56 @@
-node_modules
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Cache and build files
+.cache/
+dist/
+build/
+tmp/
+temp/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git specific
+.git/
+.gitignore
+
+# Miscellaneous
+*.bak
+*.orig
+*.tmp
+
+# Docker
+docker-compose.override.yml
+.env.docker
+*.pid
+
+# Tests
+coverage/
+
+# Dependencies lock files (optional if your team uses only one package manager)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
