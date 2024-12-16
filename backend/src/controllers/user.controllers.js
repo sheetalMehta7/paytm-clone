@@ -16,6 +16,12 @@ const userLoginSchema = z.object({
   password: z.string().min(8).trim(),
 });
 
+const updateDetailsSchema = z.object({
+  firstname: z.string().trim().optional(),
+  lastname: z.string().trim().optional(),
+  password: z.string().min(8).trim().optional(),
+});
+
 const registerUser = asyncHandler(async (req, res) => {
   // get data from the frontend
   // do the validation
@@ -48,7 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
     if (err instanceof z.ZodError) {
       throw new ApiError(400, "Validation errors", error.errors);
     } else {
-      throw new ApiError(500, "Something went wrong while regestering user.");
+      throw new ApiError(500, "Something went wrong while registering user.");
     }
   }
 });
@@ -90,4 +96,49 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser };
+const updateDetails = asyncHandler(async (req, res, next) => {
+  // get the user
+  // validate the user data
+  // hash the password
+
+  try {
+    const userData = updateDetailsSchema.parse(req.body);
+    const updates = {};
+    if (userData.firstname) updates.firstname = userData.firstname;
+    if (userData.lastname) updates.lastname = userData.lastname;
+    if (userData.password) updates.password = userData.password;
+
+    const user = await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set: updates,
+      },
+      { new: true }
+    ).select("-password");
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "User details updated successfully.", user));
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ApiError(400, "Incorrect user input.", error.errors);
+    } else {
+      throw new ApiError(
+        500,
+        "Something went wrong while updating user details."
+      );
+    }
+  }
+});
+
+const findUser = asyncHandler(async (req, res, next) => {
+  const { filter } = req.query;
+
+  const users = await User.find({
+    $or: [{ firstname: { $regex: filter } }, { lastname: { $regex: filter } }],
+  }).select("-password");
+
+  return res.status(200).json(new ApiResponse(200, "", users));
+});
+
+export { registerUser, loginUser, updateDetails, findUser };
