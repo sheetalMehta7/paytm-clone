@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/AsyncHandler";
 import { z } from "zod";
 import { User } from "../models/user.model";
 import { ApiResponse } from "../utils/ApiResponse";
+import { Account } from "../models/account.model";
 
 const userRegistrationSchema = z.object({
   firstname: z.string().trim(),
@@ -23,39 +24,57 @@ const updateDetailsSchema = z.object({
 });
 
 const registerUser = asyncHandler(async (req, res) => {
-  // get data from the frontend
-  // do the validation
-  // if everything is okay check if the email id already exists
-  // add user to db.
-  // hash the password
+  // Start a session for transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const userData = userRegistrationSchema.parse(req.body);
+      const userData = userRegistrationSchema.parse(req.body);
 
-    const userExists = User.findOne({ email: userData.email });
-    if (userExists) {
-      throw new ApiError(409, "Email already registered.");
-    }
+      const userExists = await User.findOne({ email: userData.email });
+      if (userExists) {
+          throw new ApiError(409, "Email already registered.");
+      }
 
-    const user = await User.create(userData);
+      const user = await User.create([userData], { session });
 
-    const createdUser = await User.findById(user._id).select("-password");
+      const balance = Math.random() * 1000;
 
-    if (!createdUser) {
-      throw new ApiError(500, "Something went wrong while regestering user.");
-    }
-
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(200, createdUser, "User successfully resgistered.")
+      // Create an account for the user
+      await Account.create(
+          [
+              {
+                  userId: user[0]._id,
+                  balance: balance.toFixed(2), 
+              },
+          ],
+          { session }
       );
-  } catch (error) {
-    if (err instanceof z.ZodError) {
-      throw new ApiError(400, "Validation errors", error.errors);
-    } else {
-      throw new ApiError(500, "Something went wrong while registering user.");
-    }
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      const createdUser = await User.findById(user[0]._id).select("-password");
+
+      return res
+          .status(200)
+          .json(
+              new ApiResponse(200, createdUser, "User successfully registered.")
+          );
+  } catch (err) {
+      // Abort the transaction in case of any error
+      await session.abortTransaction();
+      session.endSession();
+
+      if (err instanceof z.ZodError) {
+          throw new ApiError(400, "Validation errors", err.errors);
+      }
+
+      throw new ApiError(
+          500,
+          "Something went wrong while registering the user."
+      );
   }
 });
 
@@ -132,7 +151,7 @@ const updateDetails = asyncHandler(async (req, res, next) => {
 });
 
 const findUser = asyncHandler(async (req, res, next) => {
-  const { filter } = req.query;
+  const filter  = req.query.filter || "";
 
   const users = await User.find({
     $or: [{ firstname: { $regex: filter } }, { lastname: { $regex: filter } }],
