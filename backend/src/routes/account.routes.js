@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { accountBalance, amountTransfer } from "../controllers/account.controllers";
+import { accountBalance, amountTransfer } from "../controllers/account.controllers.js";
 
 const accountRouter = Router();
 

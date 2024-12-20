@@ -1,16 +1,16 @@
 import { Router } from "express";
-import { findUser, loginUser, registerUser, updateDetails } from "../controllers/user.controllers";
-import { verifyJWT } from "../middlewares/auth.middleware";
+import { findUser, loginUser, registerUser, updateDetails } from "../controllers/user.controllers.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
-const router = Router();
+const userRouter = Router();
 
-router.route("/signup").post(registerUser);
-router.route("/login").post(loginUser);
+userRouter.route("/signup").post(registerUser);
+userRouter.route("/login").post(loginUser);
 
 //secured routes
-router.route("/").put(verifyJWT, updateDetails);
-router.route("/bulk").put(verifyJWT, findUser);
+userRouter.route("/").put(verifyJWT, updateDetails);
+userRouter.route("/bulk").get(verifyJWT, findUser);
 
-export default router;
+export default userRouter;
 
 

@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { Account } from "../models/account.model";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
-import { asyncHandler } from "../utils/AsyncHandler";
-import { User } from "../models/user.model";
+import { Account } from "../models/account.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/AsyncHandler.js";
+import { User } from "../models/user.model.js";
 
 const accountBalance = asyncHandler(async (req, res) => {
   const balance = await Account.findById(req.user._id).select("-userid");
@@ -62,7 +62,5 @@ const amountTransfer = asyncHandler(async (req, res, next) => {
     session.endSession();
   }
 });
-
-export { amountTransfer };
 
 export { accountBalance, amountTransfer };

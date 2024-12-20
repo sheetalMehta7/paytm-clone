@@ -1,9 +1,10 @@
-import { ApiError } from "../utils/ApiError";
-import { asyncHandler } from "../utils/AsyncHandler";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/AsyncHandler.js";
 import { z } from "zod";
-import { User } from "../models/user.model";
-import { ApiResponse } from "../utils/ApiResponse";
-import { Account } from "../models/account.model";
+import { User } from "../models/user.model.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { Account } from "../models/account.model.js";
+import mongoose from "mongoose";
 
 const userRegistrationSchema = z.object({
   firstname: z.string().trim(),
@@ -151,7 +152,7 @@ const updateDetails = asyncHandler(async (req, res, next) => {
 });
 
 const findUser = asyncHandler(async (req, res, next) => {
-  const filter  = req.query.filter || "";
+  const filter = req.query.filter ? req.query.filter.trim() : "";
 
   const users = await User.find({
     $or: [{ firstname: { $regex: filter } }, { lastname: { $regex: filter } }],
