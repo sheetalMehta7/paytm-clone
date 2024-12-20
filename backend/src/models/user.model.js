@@ -1,4 +1,4 @@
-import { Model, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -56,4 +56,4 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 
-export const User = Model.create("User", userSchema);
+export const User = mongoose.model("User", userSchema);

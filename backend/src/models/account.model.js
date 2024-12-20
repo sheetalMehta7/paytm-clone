@@ -1,4 +1,4 @@
-import { Model, Schema} from "mongoose";
+import mongoose, {Schema} from "mongoose";
 
 const accountSchema = new Schema({
     userId: {
@@ -14,4 +14,4 @@ const accountSchema = new Schema({
     timestamps: true
 });
 
-export const Account = Model.create("Account", accountSchema);
+export const Account = mongoose.model("Account", accountSchema);
