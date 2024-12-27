@@ -119,10 +119,6 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const updateDetails = asyncHandler(async (req, res) => {
-  // get the user
-  // validate the user data
-  // hash the password
-
   try {
     const userData = updateDetailsSchema.parse(req.body);
     const updates = {};

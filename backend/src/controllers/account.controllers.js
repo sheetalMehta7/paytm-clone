@@ -4,6 +4,12 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { User } from "../models/user.model.js";
+import { z } from "zod";
+
+const amountTransferSchema = z.object({
+amount: z.number().positive(),
+to: z.string()
+});
 
 const accountBalance = asyncHandler(async (req, res) => {
   const balance = await Account.findOne({userId: req.user._id}).select("-userId");
@@ -14,13 +20,13 @@ const accountBalance = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, "", balance.balance));
 });
 
-const amountTransfer = asyncHandler(async (req, res, next) => {
+const amountTransfer = asyncHandler(async (req, res) => {
   // Start a session
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
 
-    const { amount, to } = req.body;
+    const { amount, to } = amountTransferSchema.parse(req.body);
 
     if (!amount || !to) {
       return res.status(400).json(new ApiError(400, "Amount and recipient are required."));
@@ -64,6 +70,10 @@ const amountTransfer = asyncHandler(async (req, res, next) => {
     // Rollback transaction on error
     await session.abortTransaction();
     session.endSession();
+
+    if(error instanceof z.ZodError){
+      return res.status(400).json(new ApiError(400, "Invalid amount or user id."));
+    }
 
     res.status(500).json(new ApiError(500, "Failed to transfer money."))
   }
