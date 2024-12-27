@@ -19,11 +19,13 @@ const userSchema = new Schema(
     email: {
       type: String,
       required: true,
+      unique: true,
+      match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
     password: {
       type: String,
       required: true,
-      minLength: 6,
+      minLength: 8,
       trim: true
     },
   },
@@ -34,7 +36,7 @@ const userSchema = new Schema(
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password);
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
 userSchema.methods.comparePassword = async function (password) {

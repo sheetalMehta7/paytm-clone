@@ -6,12 +6,12 @@ import { asyncHandler } from "../utils/AsyncHandler.js";
 import { User } from "../models/user.model.js";
 
 const accountBalance = asyncHandler(async (req, res) => {
-  const balance = await Account.findById(req.user._id).select("-userid");
+  const balance = await Account.findOne({userId: req.user._id}).select("-userId");
 
   if (!balance) {
-    throw new ApiError(500, "Failed to fetch user account balance.");
+    return res.status(500).json(new ApiError(500, "Failed to fetch user account balance."))
   }
-  return res.status(200).json(new ApiResponse(200, balance, ""));
+  return res.status(200).json(new ApiResponse(200, "", balance.balance));
 });
 
 const amountTransfer = asyncHandler(async (req, res, next) => {
@@ -21,20 +21,24 @@ const amountTransfer = asyncHandler(async (req, res, next) => {
     session.startTransaction();
 
     const { amount, to } = req.body;
-    if (!amount || !to) {
-      throw new ApiError(400, "Amount and recipient are required.");
-    }
 
+    if (!amount || !to) {
+      return res.status(400).json(new ApiError(400, "Amount and recipient are required."));
+    }
+    
+    if(to === req.user._id.toString()){
+      return res.status(400).json(new ApiError(400, "You can't transfer money to yourself."));
+    }
     // Fetch the debit account (sender's account)
     const debitAccount = await Account.findOne({ userId: req.user._id }).session(session);
     if (!debitAccount || debitAccount.balance < amount) {
-      throw new ApiError(400, "Insufficient balance.");
+      return res.status(400).json(new ApiError(400, "Insufficient balance."));
     }
 
     // Fetch the recipient (credit account holder)
     const creditAccountHolder = await User.findById(to).session(session);
     if (!creditAccountHolder) {
-      throw new ApiError(400, "Invalid account.");
+      return res.status(400).json(new ApiError(400, "Invalid account."));
     }
 
     // Update the sender's balance (debit)
@@ -55,11 +59,13 @@ const amountTransfer = asyncHandler(async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
-    res.status(200).json({ message: "Transfer successful." });
+    res.status(200).json(new ApiResponse(200, "Money transfered successfully."));
   } catch (error) {
     // Rollback transaction on error
     await session.abortTransaction();
     session.endSession();
+
+    res.status(500).json(new ApiError(500, "Failed to transfer money."))
   }
 });
 
