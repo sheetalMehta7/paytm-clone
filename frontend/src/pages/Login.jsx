@@ -7,29 +7,33 @@ import Button from "../components/Button";
 import Header from "../components/Header";
 import { login } from "../api/auth";
 import { loginValidationSchema } from "../validation/validationSchemas";
+import { loginFields } from "../util/formFields";
 
 const Login = () => {
   const navigate = useNavigate();
-  const formik = useFormik({
-    initialValues: {
-      email: "",
-      password: "",
-    },
-    validationSchema: loginValidationSchema,
-    onSubmit: async (values, { setSubmitting, setErrors }) => {
-      try {
-        const response = await login(values);
-        if (response.status === 200) {
-          localStorage.setItem("token", response.data.token);
-          navigate("/dashboard");
-        }
-      } catch (error) {
-        console.error("Login failed:", error.response?.data?.message || error);
-        setErrors({ general: error.response?.data?.errorMessage || "Login failed" });
-      } finally {
-        setSubmitting(false);
+
+  const handleFormSubmit = async (values, { setSubmitting, setErrors }) => {
+    try {
+      const response = await login(values);
+      if (response.status === 200) {
+        localStorage.setItem("token", response.data.token);
+        navigate("/dashboard");
       }
-    },
+    } catch (error) {
+      console.error("Login failed:", error.response?.data?.message || error);
+      setErrors({ general: error.response?.data?.errorMessage || "Login failed" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const formik = useFormik({
+    initialValues: loginFields.reduce((acc, field) => {
+      acc[field.id] = "";
+      return acc;
+    }, {}),
+    validationSchema: loginValidationSchema,
+    onSubmit: handleFormSubmit,
   });
 
   return (
@@ -40,26 +44,19 @@ const Login = () => {
           subtitle="Welcome back! Please login to your account."
         />
         <form className="space-y-4 mt-6" onSubmit={formik.handleSubmit}>
-          <InputField
-            id="email"
-            label="Email"
-            type="email"
-            placeholder="Enter your email"
-            value={formik.values.email}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.email && formik.errors.email}
-          />
-          <InputField
-            id="password"
-            label="Password"
-            type="password"
-            placeholder="Enter your password"
-            value={formik.values.password}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.password && formik.errors.password}
-          />
+          {loginFields.map((field) => (
+            <InputField
+              key={field.id}
+              id={field.id}
+              label={field.label}
+              type={field.type || "text"}
+              placeholder={field.placeholder}
+              value={formik.values[field.id]}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched[field.id] && formik.errors[field.id]}
+            />
+          ))}
           {formik.errors.general && (
             <p className="text-red-500 text-sm">{formik.errors.general}</p>
           )}

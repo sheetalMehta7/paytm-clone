@@ -1,23 +1,30 @@
-import React from 'react';
+import React from "react";
+import leftImage from "../assets/transfer.svg";
+import rightImage from "../assets/coin.svg"
 
-const Banner = ({ image, onProfileClick }) => {
+const Banner = () => {
   return (
-    <div className="flex justify-between items-center p-4 bg-blue-600 rounded-lg text-white">
-      <div>
-        <img src={image} alt="Banner Animation" className="h-16 w-16" />
+    <div className="relative bg-gradient-to-r from-primarySolid to-primaryGradient-end text-white p-10 rounded-lg shadow-lg flex justify-center items-center">
+      <img
+        src={leftImage}
+        alt="Coin"
+        className="absolute left-0 top-1/2 transform -translate-y-1/2 max-w-xl"
+      />
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold leading-tight">Your Payments Made Easy!</h1>
+        <p className="text-lg">
+          Easily send money to your friends, family, or anyone with just a few clicks.
+        </p>
+        <button className="bg-secondary1 text-black px-6 py-3 mt-4 rounded-lg shadow hover:bg-purple-950 hover:text-gray-300 transition">
+          Get Started →
+        </button>
       </div>
-      <div>
-        <input
-          type="text"
-          placeholder="Search users..."
-          className="px-4 py-2 rounded-md text-gray-900"
-        />
-      </div>
-      <button onClick={onProfileClick} className="rounded-full bg-gray-800 p-2">
-        <img src="/profile-icon.png" alt="Profile" className="h-8 w-8 rounded-full" />
-      </button>
+      <img
+        src={rightImage}
+        alt="Referral"
+        className="absolute right-5 top-1/2 transform -translate-y-1/2 max-w-72"
+      />
     </div>
   );
 };
-
 export default Banner;
